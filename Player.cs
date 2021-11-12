@@ -8,14 +8,16 @@ namespace Pharaoh
         public Guid ID { get; set; }
         public string Name { get; set; }
         public bool IsAi { get; set; }
+        public bool IsFirstMoving { get; set; }
         public List<ICard> HandCards { get; set; }
 
         public Player(string name, bool isAi)
         {
-            ID = new Guid();
+            ID = Guid.NewGuid();
             Name = name;
             IsAi = isAi;
             HandCards = new List<ICard>();
+            IsFirstMoving = false;
         }
         public void GetCard(ICard card)
         {

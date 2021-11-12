@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Pharaoh.Helpers
 {
-    public static class SceneBuilder
+    static class SceneBuilder
     {
         private static readonly int Bottom = Console.WindowHeight - 1;
         private static readonly int Top = 0;
@@ -14,9 +14,35 @@ namespace Pharaoh.Helpers
         private static readonly int WCenter = Right / 2;
         private static readonly int HCenter = Bottom / 2;
 
+        private static int RelativeX(double mult)
+        {
+            mult = mult switch
+            {
+                > 1 => 1,
+                < 0 => 0,
+                _ => mult
+            };
+            return Convert.ToInt32(Right * mult);
+        }
+        private static int RelativeY(double mult)
+        {
+            mult = mult switch
+            {
+                > 1 => 1,
+                < 0 => 0,
+                _ => mult
+            };
+            return Convert.ToInt32(Bottom * mult);
+        }
 
-        public static void SetCursorToInputPos() => Console.SetCursorPosition(0, Console.WindowHeight - 2);
-        public static void DrawScreen(Game game, SceneType sceneType)
+
+        public static void SetCursorToInputPos()
+        {
+            Console.SetCursorPosition(0, Console.WindowHeight - 1);
+            Console.CursorVisible = true;
+        }
+        
+        public static Scene BuildScene(Game game, SceneType sceneType)
         {
             var scene = new Scene();
             AddTitle(scene);
@@ -26,7 +52,8 @@ namespace Pharaoh.Helpers
                 case SceneType.Start:
                     StartScene(scene);
                     break;
-                case SceneType.Draw:
+                case SceneType.Drawing:
+                    DrawScene(scene,game);
                     break;
                 case SceneType.Game:
                     break;
@@ -36,12 +63,12 @@ namespace Pharaoh.Helpers
                     throw new ArgumentOutOfRangeException(nameof(sceneType), sceneType, null);
             }
 
-            Graphic.Update(scene);
+            return scene;
         }
 
         private static void AddTitle(Scene scene)
         {
-            scene.GameObjects.Add(new Content("Title", "Welcome to Pharaoh!", new Position(Left, Top), ConsoleColor.Blue,
+            scene.AddGameObject(new GameObject("Title", "Welcome to Pharaoh!", new Position(Left, Top), ConsoleColor.Blue,
                 ConsoleColor.DarkBlue));
         }
 
@@ -61,54 +88,57 @@ namespace Pharaoh.Helpers
             var index = 0;
             var contents = art
                 .Select(line =>
-                    new Content("Art", line, new(WCenter, (HCenter - art.Length/2) + index++), null, null))
+                    new GameObject("Art", line, new(WCenter, (HCenter - art.Length/2) + index++), null, null))
                 .ToList();
-            scene.GameObjects.AddRange(contents);
+            scene.AddGameObject(contents);
         }
         private static void StartScene(Scene scene)
         {
             GenerateArt(scene);
-            scene.GameObjects.AddRange(new List<Content>()
+            scene.AddGameObject(new List<GameObject>()
                 {
                     new("Massage","Enter you name here: ",new Position(WCenter,Top+1),null,ConsoleColor.DarkBlue),
                     new("Controls","Press Enter to accept.",new Position(Left,Bottom-2),ConsoleColor.Blue,ConsoleColor.DarkBlue)
                 }
             );
         }
-        private static void DrawScene(Scene scene)
+        private static void DrawScene(Scene scene,Game game)
         {
-            scene.GameObjects.AddRange(new List<Content>()
+            GenerateArt(scene);
+            scene.AddGameObject(new List<GameObject>()
                 {
-                    new("Massage", "Enter you name here:", new Position(WCenter, Top + 1), null, ConsoleColor.DarkBlue),
+                    new("Massage", "Who will go first?", new Position(WCenter, Top + 1), null, ConsoleColor.Green),
+                    new("AI lable", $"AI: {game.EnemyDice}", new Position(RelativeX(0.425), RelativeY(0.75)), null, null),
+                    new("Player lable", $"Player: {game.PlayerDice}", new Position(RelativeX(0.525), RelativeY(0.75)), null, null),
                     new("Controls", "Press Enter to accept.", new Position(Left, Bottom - 2), ConsoleColor.Blue,
-                        ConsoleColor.DarkBlue)
+                        ConsoleColor.DarkBlue),
                 }
             );
-            //    public Content Massage { get; set; }
-            //public Content Art { get; set; }
-            //public Content EnemyTitle { get; set; }
-            //public Content EnemyDice { get; set; }
-            //public Content PlayerTitle { get; set; }
-            //public Content PlayerDice { get; set; }
+            //    public GameObject Massage { get; set; }
+            //public GameObject Art { get; set; }
+            //public GameObject EnemyTitle { get; set; }
+            //public GameObject EnemyDice { get; set; }
+            //public GameObject PlayerTitle { get; set; }
+            //public GameObject PlayerDice { get; set; }
         }
         private static void GameScene(Scene scene)
         {
-            //        public Content EnemyTitle { get; set; }
-            //public Content EnemyHand { get; set; }
-            //public Content PlayTable { get; set; }
-            //public Content PlayerHand { get; set; }
-            //public Content PlayerTitle { get; set; }
+            //        public GameObject EnemyTitle { get; set; }
+            //public GameObject EnemyHand { get; set; }
+            //public GameObject PlayTable { get; set; }
+            //public GameObject PlayerHand { get; set; }
+            //public GameObject PlayerTitle { get; set; }
         }
         private static void EndScene(Scene scene)
         {
-            //public Content Massage { get; set; }
+            //public GameObject Massage { get; set; }
 
         }
 
         public enum SceneType
         {
             Start,
-            Draw,
+            Drawing,
             Game,
             End
         }

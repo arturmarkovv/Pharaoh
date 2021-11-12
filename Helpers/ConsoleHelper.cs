@@ -5,6 +5,25 @@ namespace Pharaoh.Helpers
 {
     public static class ConsoleHelper
     {
+        //full screen
+        [DllImport("kernel32.dll", ExactSpelling = true)]
+        private static extern IntPtr GetConsoleWindow();
+        private static IntPtr ThisConsole = GetConsoleWindow();
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+        private const int HIDE = 0;
+        private const int MAXIMIZE = 3;
+        private const int MINIMIZE = 6;
+        private const int RESTORE = 9;
+
+        public static void ShowMaximizeConsole()
+        {
+            Console.SetWindowSize(Console.LargestWindowWidth, Console.LargestWindowHeight);
+            ShowWindow(ThisConsole, MAXIMIZE);
+        }
+
+
+        //set font
         private const int FixedWidthTrueType = 54;
         private const int StandardOutputHandle = -11;
 
@@ -35,6 +54,7 @@ namespace Pharaoh.Helpers
             //[MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.wc, SizeConst = 32)]
             public string FontName;
         }
+        
 
         public static FontInfo[] SetCurrentFont(string font, short fontSize = 0)
         {

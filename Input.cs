@@ -7,6 +7,10 @@ namespace Pharaoh
 {
     public static class Input
     {
+        public static void WaitInput()
+        {
+            Console.ReadKey();
+        }
         public static int GetInput(InputType inputType, List<ICard>playerHand = null, List<int> availableMoves = null)
         {
             SceneBuilder.SetCursorToInputPos();
@@ -38,11 +42,19 @@ namespace Pharaoh
 
         public static string GetPlayerName()
         {
-            return Console.ReadLine();
+            SceneBuilder.SetCursorToInputPos();
+            var playerName = Console.ReadLine();
+            if (string.IsNullOrEmpty(playerName))
+            {
+                playerName = "Player";
+            }
+
+            return playerName;
         }
 
         private static int PlSelectCard(List<ICard> playerHand, List<int> availableMoves)
         {
+            SceneBuilder.SetCursorToInputPos();
             var input = Convert.ToInt32(Console.ReadLine());
             if (input > 0) input -= 1;
             while (!availableMoves.Contains(input))
@@ -55,6 +67,7 @@ namespace Pharaoh
         }
         private static int PlSelectSuit()
         {
+            SceneBuilder.SetCursorToInputPos();
             var availableMoves = new[]{1, 2, 3, 4};
             var input = Convert.ToInt32(Console.ReadLine());
             while (!availableMoves.Contains(input))

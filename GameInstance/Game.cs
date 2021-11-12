@@ -4,54 +4,91 @@ using static Pharaoh.Helpers.SceneBuilder;
 
 namespace Pharaoh.GameInstance
 {
-    public class Game
+    class Game
     {
-        public Stack<ICard> deck;
-        public IPlayer player;
-        public IPlayer enemy;
-        public ICard topCard;
-        public List<int> availablePlayerCards = new() { 0 };
-        public int turnCounter;
+        public Stack<ICard> Deck;
+        public IPlayer Winner;
+        public IPlayer Player;
+        public IPlayer Enemy;
+        public ICard TopCard;
+        public List<int> AvailablePlayerCards = new() { 0 };
+        public int TurnCounter;
+
+        //Drawing
+        public int PlayerDice;
+        public int EnemyDice;
         public Game()
         {
-            //Initialization();
-            DrawScreen(this,SceneType.Start);
-            Input.GetPlayerName();
-            Distribution();
-            IPlayer winner = null;
-            while (winner == null)
+            StartScreen();
+            Initialization();
+            DrawingScreen();
+            while (Winner == null)
             {
-                GameProcess();
+                GameScreen();
             }
-            GameEnd();
+            EndScreen();
         }
 
-        private void GameEnd()
+        private void StartScreen()
+        {
+            Graphic.Update(BuildScene(this, SceneType.Start));
+        }
+        private void DrawingScreen()
+        {
+            PlayerDice = 0;
+            EnemyDice = 0;
+            while (PlayerDice==EnemyDice)
+            {
+                for (int i = 0; i < 10; i++)
+                {
+                    DiceRoll(i % 2 == 0 ? Player : Enemy);
+                    Graphic.Update(BuildScene(this, SceneType.Drawing));
+                }
+            }
+
+            if (PlayerDice>EnemyDice)
+            {
+                Player.IsFirstMoving = true;
+            }
+            else
+            {
+                Enemy.IsFirstMoving = true;
+            }
+
+            Input.WaitInput();
+        }
+        private void GameScreen()
         {
             throw new NotImplementedException();
         }
-
-        private void GameProcess()
+        private void EndScreen()
         {
             throw new NotImplementedException();
         }
-
-        private void Distribution()
-        {
-            throw new NotImplementedException();
-        }
-
         private void Initialization()
         {
-            //var playerName = Console.ReadLine();
-            //if (string.IsNullOrEmpty(playerName))
-            //{
-            //    playerName = "Player";
-            //}
+            Player = new Player(Input.GetPlayerName(),isAi:false);
+            Enemy = new Player("AI",isAi:true);
+            Deck = new Stack<ICard>(DeckBuilder.Build(new List<ICard>(), 36));
+            Winner = null;
+        }
 
-            //player = new Player(playerName);
-            //ai = new Player();
-            //deck = new Stack<Card>(DeckBuilder.Build(new List<Card>(), 36));
+        private void DiceRoll(IPlayer player)
+        {
+            var rnd = new Random();
+            var diceValue = rnd.Next(6) + 1;
+            if (player.ID == Player.ID)
+            {
+                PlayerDice = diceValue;
+            }
+            else if (player.ID == Enemy.ID)
+            {
+                EnemyDice = diceValue;
+            }
+            else
+            {
+                throw new Exception($"Player with that id:{player.ID} is not exist");
+            }
         }
     }
 }

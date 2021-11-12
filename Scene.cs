@@ -8,11 +8,22 @@ namespace Pharaoh
 {
     public class Scene
     {
-        public List<Content> GameObjects { get; set; }
+        private List<GameObject> _gameObjects { get;}
 
         public Scene()
         {
-            GameObjects = new List<Content>();
+            _gameObjects = new List<GameObject>();
+        }
+
+        public List<GameObject> GameObjects => _gameObjects;
+        public void AddGameObject(GameObject gameObj)
+        {
+            _gameObjects.Add(gameObj);
+        }
+
+        public void AddGameObject(List<GameObject> gameObjects)
+        {
+            _gameObjects.AddRange(gameObjects);
         }
     }
 
@@ -29,21 +40,21 @@ namespace Pharaoh
         }
     }
 
-    public class Content
+    public class GameObject
     {
         public string Name { get; set; }
         public string Value{ get; set; }
         public Position Position{ get; set; }
-        public ConsoleColor? BGColor { get; set; }
-        public ConsoleColor? FGColor { get; set; }
+        public ConsoleColor? BgColor { get; set; }
+        public ConsoleColor? FgColor { get; set; }
 
-        public Content(string name, string value, Position position, ConsoleColor? bgColor, ConsoleColor? fgColor, bool offset = true)
+        public GameObject(string name, string value, Position position, ConsoleColor? bgColor, ConsoleColor? fgColor, bool offset = true)
         {
             Name = name;
             Value = value;
             Position = position;
-            BGColor = bgColor;
-            FGColor = fgColor;
+            BgColor = bgColor;
+            FgColor = fgColor;
             if(offset)Offset();
         }
 
