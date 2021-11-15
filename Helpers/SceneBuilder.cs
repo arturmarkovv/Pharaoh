@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Pharaoh.Helpers
 {
-    static class SceneBuilder
+    internal static class SceneBuilder
     {
         private static readonly int Bottom = Console.WindowHeight - 1;
         private static readonly int Top = 0;
@@ -38,10 +38,10 @@ namespace Pharaoh.Helpers
 
         public static void SetCursorToInputPos()
         {
-            Console.SetCursorPosition(0, Console.WindowHeight - 1);
+            Console.SetCursorPosition(0, Bottom);
             Console.CursorVisible = true;
         }
-        
+
         public static Scene BuildScene(Game game, SceneType sceneType)
         {
             var scene = new Scene();
@@ -53,9 +53,10 @@ namespace Pharaoh.Helpers
                     StartScene(scene);
                     break;
                 case SceneType.Drawing:
-                    DrawScene(scene,game);
+                    DrawScene(scene, game);
                     break;
                 case SceneType.Game:
+                    GameScene(scene, game);
                     break;
                 case SceneType.End:
                     break;
@@ -88,7 +89,7 @@ namespace Pharaoh.Helpers
             var index = 0;
             var contents = art
                 .Select(line =>
-                    new GameObject("Art", line, new(WCenter, (HCenter - art.Length/2) + index++), null, null))
+                    new GameObject("Art", line, new(WCenter, (HCenter - art.Length / 2) + index++), null, null))
                 .ToList();
             scene.AddGameObject(contents);
         }
@@ -98,11 +99,11 @@ namespace Pharaoh.Helpers
             scene.AddGameObject(new List<GameObject>()
                 {
                     new("Massage","Enter you name here: ",new Position(WCenter,Top+1),null,ConsoleColor.DarkBlue),
-                    new("Controls","Press Enter to accept.",new Position(Left,Bottom-2),ConsoleColor.Blue,ConsoleColor.DarkBlue)
+                    new("Controls","Press Enter to accept.",new Position(Left,Bottom-1),ConsoleColor.Blue,ConsoleColor.DarkBlue)
                 }
             );
         }
-        private static void DrawScene(Scene scene,Game game)
+        private static void DrawScene(Scene scene, Game game)
         {
             GenerateArt(scene);
             scene.AddGameObject(new List<GameObject>()
@@ -110,29 +111,110 @@ namespace Pharaoh.Helpers
                     new("Massage", "Who will go first?", new Position(WCenter, Top + 1), null, ConsoleColor.Green),
                     new("AI lable", $"AI: {game.EnemyDice}", new Position(RelativeX(0.425), RelativeY(0.75)), null, null),
                     new("Player lable", $"Player: {game.PlayerDice}", new Position(RelativeX(0.525), RelativeY(0.75)), null, null),
-                    new("Controls", "Press Enter to accept.", new Position(Left, Bottom - 2), ConsoleColor.Blue,
+                    new("Controls", "Press Enter to accept.", new Position(Left, Bottom - 1), ConsoleColor.Blue,
                         ConsoleColor.DarkBlue),
                 }
             );
-            //    public GameObject Massage { get; set; }
-            //public GameObject Art { get; set; }
-            //public GameObject EnemyTitle { get; set; }
-            //public GameObject EnemyDice { get; set; }
-            //public GameObject PlayerTitle { get; set; }
-            //public GameObject PlayerDice { get; set; }
         }
-        private static void GameScene(Scene scene)
+        private static void GameScene(Scene scene, Game game)
         {
-            //        public GameObject EnemyTitle { get; set; }
-            //public GameObject EnemyHand { get; set; }
-            //public GameObject PlayTable { get; set; }
-            //public GameObject PlayerHand { get; set; }
-            //public GameObject PlayerTitle { get; set; }
+            var enemyCards = game.Enemy.HandCards.Aggregate(string.Empty, (current, card) => current + "▓ ");
+            scene.AddGameObject(FillTableCards(game.TopCard, game.Deck.Count, new Position(WCenter, HCenter)));
+            scene.AddGameObject(!game.IsSuitChangingTurn
+                ? FillPlayerHand(game.Player.HandCards, new Position(WCenter, RelativeY(0.75)))
+                : FillSuits(new Position(WCenter, RelativeY(0.75))));
+
+
+            scene.AddGameObject(new List<GameObject>()
+                {
+                    new("AI Title", game.Enemy.Name, new Position(WCenter, RelativeY(0.23)), ConsoleColor.DarkMagenta, null),
+                    new("AI Hand", enemyCards, new Position(RelativeX(0.5), RelativeY(0.25)), null, null),
+
+                    new("Player Title", game.Player.Name, new Position(WCenter, RelativeY(0.77)),ConsoleColor.DarkMagenta,null),
+                    new("Controls", "0:(1st)draw a card(2nd)skip turn; 1-9:play a card(choose suit); Enter:accept", new Position(Left, Bottom - 1), ConsoleColor.Blue,
+                        ConsoleColor.DarkBlue),
+                }
+            );
         }
         private static void EndScene(Scene scene)
         {
             //public GameObject Massage { get; set; }
 
+        }
+
+        private static List<GameObject> FillSuits(Position pos)
+        {
+            var gameObjects = new List<GameObject>();
+            var counter = 0;
+            foreach (var suit in Enum.GetValues(typeof(Suit)))
+            {
+                gameObjects.Add(new GameObject("suit", GetSuitSymbol((Suit)suit) + "   ", new Position(pos.X - ((Enum.GetValues(typeof(Suit)).Length*3) - counter*3), pos.Y), null, GetCardColor((Suit)suit), false));
+                counter++;
+            }
+
+            return gameObjects;
+        }
+        private static List<GameObject> FillTableCards(ICard topCard, int deckCount, Position pos, Suit? tempSuit = null)
+        {
+            var example = $"6♥  ▓{deckCount}";
+            var gameObjects = new List<GameObject>();
+            gameObjects.Add(new GameObject("Top card Quality", GetQualitySymbol(topCard.Quality), new Position(pos.X - example.Length / 2, pos.Y), null, null, false));
+            gameObjects.Add(new GameObject("Top card Suit", GetSuitSymbol(topCard.Suit), new Position(pos.X - ((example.Length / 2) - 2), pos.Y), null, GetCardColor(topCard.Suit), false));
+            gameObjects.Add(new GameObject("Deck", $"   ▓{deckCount}", new Position(pos.X - ((example.Length / 2) - 5), pos.Y), null, null, false));
+            return gameObjects;
+        }
+        private static List<GameObject> FillPlayerHand(List<ICard> cards, Position pos)
+        {
+            var offset = cards.Count * 2;
+            var gameObjects = new List<GameObject>();
+            var counter = 0;
+            foreach (var card in cards)
+            {
+                gameObjects.Add(new GameObject("Player card", GetQualitySymbol(card.Quality), new Position(pos.X - (offset - counter), pos.Y), null, null, false));
+                counter += 2;
+                gameObjects.Add(new GameObject("Player card", GetSuitSymbol(card.Suit), new Position(pos.X - (offset - counter), pos.Y), null, GetCardColor(card.Suit), false));
+                counter += 3;
+            }
+
+            return gameObjects;
+        }
+        private static ConsoleColor GetCardColor(Suit suit)
+        {
+            return suit is Suit.Hearts or Suit.Diamonds ? ConsoleColor.Red : ConsoleColor.DarkCyan;
+        }
+
+        private static string GetSuitSymbol(Suit suit)
+        {
+            var suits = new[] { "♠", "♥", "♦", "♣" };
+            return suit switch
+            {
+                Suit.Hearts => suits[1],
+                Suit.Diamonds => suits[2],
+                Suit.Spades => suits[0],
+                Suit.Clubs => suits[3],
+                _ => throw new ArgumentOutOfRangeException(nameof(suit), suit, null)
+            };
+        }
+        private static string GetQualitySymbol(Quality quality)
+        {
+            var suits = new[] { "♠", "♥", "♦", "♣" };
+            return quality switch
+            {
+                Quality.Ace => quality.ToString()[..1],
+                Quality.King => quality.ToString()[..1],
+                Quality.Queen => quality.ToString()[..1],
+                Quality.Jack => quality.ToString()[..1],
+                Quality.Two => "2",
+                Quality.Three => "3",
+                Quality.Four => "4",
+                Quality.Five => "5",
+                Quality.Six => "6",
+                Quality.Seven => "7",
+                Quality.Eight => "8",
+                Quality.Nine => "9",
+                Quality.Ten => "10",
+                _ => throw new ArgumentOutOfRangeException(nameof(quality), quality, null)
+            };
         }
 
         public enum SceneType

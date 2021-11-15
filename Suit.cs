@@ -8,9 +8,9 @@ namespace Pharaoh
 {
     public enum Suit
     {
+        Spades,
         Hearts,
         Diamonds,
-        Spades,
         Clubs
     }
     

@@ -11,19 +11,16 @@ namespace Pharaoh
         {
             Console.ReadKey();
         }
-        public static int GetInput(InputType inputType, List<ICard>playerHand = null, List<int> availableMoves = null)
+        public static int GetInput(InputType inputType, List<int> availableMoves = null)
         {
             SceneBuilder.SetCursorToInputPos();
             switch (inputType)
             {
-                case InputType.Pass:
-                    Console.ReadKey();
-                    return 0;
 
                 case InputType.PlSelectCard:
-                    if (playerHand == null||availableMoves == null) 
-                        throw new ArgumentNullException(nameof(playerHand) + " or " + nameof(availableMoves), "Missing argument");
-                    return PlSelectCard(playerHand, availableMoves);
+                    if (availableMoves == null) 
+                        throw new ArgumentNullException(nameof(availableMoves), "Missing argument");
+                    return PlSelectCard();
 
                 case InputType.PlSelectSuit:
                     return PlSelectSuit();
@@ -33,7 +30,7 @@ namespace Pharaoh
                     return AiSelect(availableMoves);
 
                 case InputType.AiSelectSuit:
-                    return AiSelect(new List<int>{0,1,2,3});
+                    return AiSelect(new List<int> {0,1,2,3});
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(inputType), inputType, null);
@@ -52,24 +49,62 @@ namespace Pharaoh
             return playerName;
         }
 
-        private static int PlSelectCard(List<ICard> playerHand, List<int> availableMoves)
+        private static int PlSelectCard()
         {
+            int input = -1;
             SceneBuilder.SetCursorToInputPos();
-            var input = Convert.ToInt32(Console.ReadLine());
+            do
+            {
+                try
+                {
+                    input = Convert.ToInt32(Console.ReadLine());
+                }
+                catch
+                {
+                    // ignored
+                }
+            } while (input == -1);
+             
+            //if (input > 0) input -= 1;
+            //while (!availableMoves.Contains(input))
+            //{
+            //    input = Convert.ToInt32(Console.ReadLine());
+            //    if (input > 0) input -= 1;
+            //}
+
+
+            return input;
+        }
+
+        public static int GetValidPlayerInput(int input, List<int> availableMoves)
+        {
             if (input > 0) input -= 1;
             while (!availableMoves.Contains(input))
             {
-                input = Convert.ToInt32(Console.ReadLine());
+                input = Input.GetInput(InputType.PlSelectCard, availableMoves);
                 if (input > 0) input -= 1;
             }
 
             return input;
         }
+
         private static int PlSelectSuit()
         {
             SceneBuilder.SetCursorToInputPos();
             var availableMoves = new[]{1, 2, 3, 4};
-            var input = Convert.ToInt32(Console.ReadLine());
+            int input = -1;
+            SceneBuilder.SetCursorToInputPos();
+            do
+            {
+                try
+                {
+                    input = Convert.ToInt32(Console.ReadLine());
+                }
+                catch
+                {
+                    // ignored
+                }
+            } while (input == -1);
             while (!availableMoves.Contains(input))
             {
                 input = Convert.ToInt32(Console.ReadLine());
@@ -83,12 +118,10 @@ namespace Pharaoh
             var rnd = new Random();
             return aiAvailableMoves[rnd.Next(aiAvailableMoves.Count)];
         }
-
     }
 
     public enum InputType
     {
-        Pass,
         PlSelectCard,
         PlSelectSuit,
         AiSelectCard,

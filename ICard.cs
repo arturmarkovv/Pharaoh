@@ -14,5 +14,6 @@ namespace Pharaoh
 
         public bool Equals(ICard second);
         public void ChangeOwner(Guid newOwnerGuid);
+        public void ChangeCardSuit(Suit suit);
     }
 }

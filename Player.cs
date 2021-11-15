@@ -35,7 +35,10 @@ namespace Pharaoh
             {
                 throw new ArgumentOutOfRangeException();
             }
-            return HandCards[index];
+            var card = HandCards[index];
+            card.ChangeOwner(ID);
+            HandCards.Remove(card);
+            return card;
         }
 
         public Suit ChooseSuit(int index)
